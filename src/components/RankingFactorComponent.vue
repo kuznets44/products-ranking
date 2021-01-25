@@ -16,8 +16,8 @@
           </div>
         </div>
       </md-list-item>
-      <md-list-item>
-        <component v-if="factor.paramsComponent != ''" :is="factor.paramsComponent" :params="factor.params"></component>
+      <md-list-item v-if="factor.paramsComponent != ''" >
+        <component :is="factor.paramsComponent" :params="factor.params"></component>
       </md-list-item>
     </md-list>
   </div>

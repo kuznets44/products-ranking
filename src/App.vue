@@ -13,11 +13,11 @@
       </md-dialog-actions>
     </md-dialog>
     <div class="page-container">
-      <md-app md-waterfall md-mode="fixed"  style="height:100vh;">
+      <md-app md-scrollbar>
         <md-app-toolbar class="md-primary">
           <md-field>
           <label for="catalog">Каталог</label>
-          <md-select v-model="catalogSelected" @md-selected="loadCatalog" name="catalog" id="catalog">
+          <md-select v-model="catalogSelected" @md-selected="loadCatalog" class="md-select__catalog" name="catalog" id="catalog">
             <md-option value="1">Кухни</md-option>
             <md-option value="2">Диваны</md-option>
             <md-option value="3">Шкафы</md-option>
@@ -46,7 +46,7 @@
               <span class="md-list-item-text">{{ factorGroup.name }}</span>
 
               <md-list slot="md-expand">
-                <md-list-item v-for="(factor,index) in factorGroup.factors"
+                <md-list-item  v-for="(factor,index) in factorGroup.factors"
                                         :key="index">
                   <RankingFactorComponent :factor="factor"></RankingFactorComponent>
                 </md-list-item>
@@ -56,12 +56,8 @@
 
           <md-bottom-bar>
             <md-bottom-bar-item md-label="Просмотр" md-icon="refresh"></md-bottom-bar-item>
-            <!--
-            <md-bottom-bar-item md-label="Отменить" md-icon="undo" @click="updateRankingFactorsFlattened"></md-bottom-bar-item>
-            -->
             <md-bottom-bar-item md-label="Сохранить" md-icon="save" @click="saveParams"></md-bottom-bar-item>
           </md-bottom-bar>
-
 
         </md-app-drawer>
 
@@ -70,6 +66,12 @@
         <md-app-content>
           <md-progress-bar v-if="showSpinner" md-mode="query"></md-progress-bar>
           <Catalog v-if="products.length > 0" :products="products" :rankingFactorsFlattened="rankingFactorsFlattened" />
+          <md-empty-state
+            v-if="!showSpinner && products.length == 0"
+            md-icon="devices_other"
+            md-label="Выберите каталог"
+            md-description="">
+          </md-empty-state>
         </md-app-content>
       </md-app>
     </div>
@@ -102,7 +104,8 @@ export default {
       productsProcessed: [],
       showSpinner: false,
       catalogCmpKey: this.setCatalogCmpKey(),
-      showDialogSpinner: false
+      showDialogSpinner: false,
+      factorsChanged: false
     }
   },
   methods: {
@@ -204,13 +207,16 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
   .md-app {
     border: 1px solid rgba(#000, .12);
+    width:100%;
+    height: 800px;
   }
 
-  .md-drawer {
-    width: 400px;
+  .md-app-drawer {
+    height: 735px;
+    position: relative;
   }
 
   .md-card {
@@ -232,6 +238,19 @@ export default {
   }
   .md-list-item-button {
     padding-left: 10px!important;
+  }
+  #app {
+    border:1px solid red;
+    width:80vw;
+    height: 75vh;
+  }
+  .page-container {
+    border:1px solid green;
+  }
+  .md-select__catalog input {
+    background: transparent!important;
+    border: none;
+    box-shadow: none;
   }
 </style>
 
