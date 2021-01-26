@@ -1,6 +1,7 @@
 <template>
-  <div style="height:100vh;">
-    <md-table>
+  <div>
+    <!--
+    <md-table md-card>
       <md-table-row>
         <md-table-head md-numeric class="md-cell__position">#</md-table-head>
         <md-table-head width="200">Название</md-table-head>
@@ -26,6 +27,24 @@
           {{ product.factorValues[factor.id] }}
         </md-table-cell>
         
+      </md-table-row>
+    </md-table>
+    -->
+    <md-table v-model="productsProcessed" md-card>
+      <!--
+      <md-table-toolbar>
+        <h1 class="md-title">Users</h1>
+      </md-table-toolbar>
+      -->
+      <md-table-row slot="md-table-row" slot-scope="{ item, index }">
+        <md-table-cell md-label="ID" width="50">{{ index + 1 }}</md-table-cell>
+        <md-table-cell md-label="Название" class="md-cell__name">{{ item.name }}<div style="width:200px"></div></md-table-cell>
+        <md-table-cell md-label="Ранг" class="md-cell__rank">{{ item.rank }}</md-table-cell>
+
+        <md-table-cell  v-for="(factor,i) in rankingFactorsFlattened"
+                        :key="i"
+                        :md-label="factor.shortName"
+                        width="50">{{ item.factorValues[factor.id] }}</md-table-cell>
       </md-table-row>
     </md-table>
   </div>
@@ -66,7 +85,6 @@ export default {
         });
       });
       result.sort((a, b) => a.rank < b.rank ? 1 : -1);
-      console.log(result.slice(0,5));
       return result.slice(0,36);
     }
   },
@@ -90,6 +108,12 @@ export default {
     color:#fff!important;
   }
   .md-cell__name {
-    width: 200px;
+    width: 200px!important;
+  }
+  .md-cell__rank {
+    width: 50px!important;
+  }
+  .md-table-cell-container {
+    padding: 6px 12px 6px 12px;
   }
 </style>

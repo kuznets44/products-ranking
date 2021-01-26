@@ -32,7 +32,7 @@
         </md-field>
         </md-app-toolbar>
 
-        <md-app-drawer  md-permanent="clipped">
+        <md-app-drawer  md-permanent="clipped"   style="height:calc(100vh - 64px); overflow:auto;">
           <md-toolbar class="md-transparent" md-elevation="0">
             <span class="md-title">Параметры ранжирования</span>
           </md-toolbar>
@@ -40,8 +40,8 @@
           <md-list>
             <md-list-item v-for="(factorGroup,index) in rankingFactorsAsync"
                           :key="index"
-                           md-expand
-                           :md-expanded.sync="factorGroup.expanded">
+                          md-expand
+                           >
               <md-icon>{{ factorGroup.icon }}</md-icon>
               <span class="md-list-item-text">{{ factorGroup.name }}</span>
 
@@ -55,15 +55,16 @@
           </md-list>
 
           <md-bottom-bar>
-            <md-bottom-bar-item md-label="Просмотр" md-icon="refresh"></md-bottom-bar-item>
+            <md-bottom-bar-item md-label="Просмотреть изменения" md-icon="refresh" @click="refresh"></md-bottom-bar-item>
             <md-bottom-bar-item md-label="Сохранить" md-icon="save" @click="saveParams"></md-bottom-bar-item>
+            <md-bottom-bar-item md-label="Закрыть" md-icon="close" @click="close"></md-bottom-bar-item>
           </md-bottom-bar>
 
         </md-app-drawer>
 
 
 
-        <md-app-content>
+        <md-app-content  style="height:calc(100vh - 64px); overflow:auto;">
           <md-progress-bar v-if="showSpinner" md-mode="query"></md-progress-bar>
           <Catalog v-if="products.length > 0" :products="products" :rankingFactorsFlattened="rankingFactorsFlattened" />
           <md-empty-state
@@ -80,6 +81,7 @@
 
 <script>
 import Catalog from './components/Catalog.vue';
+//import CatalogSpreadsheet from './components/CatalogSpreadsheet.vue';
 import RankingFactor from './RankingFactor.js';
 import RankingFactorComponent from './components/RankingFactorComponent.vue';
 import axios from 'axios';
@@ -88,7 +90,8 @@ export default {
   name: 'App',
   components: {
     Catalog,
-    RankingFactorComponent
+    RankingFactorComponent,
+    //CatalogSpreadsheet
   },
   data() {
     return {
@@ -141,6 +144,9 @@ export default {
       });
       return result;
     },
+    refresh: function() {
+      this.rankingFactorsFlattened = this.getRankingFactorsFlatenned();
+    },
     saveParams: function() {
       this.showDialog = true;
       axios.post('https://mebel.ru/tools/api/product-ranking/factors/','data=' + JSON.stringify(this.rankingFactorsAsync),{
@@ -165,6 +171,9 @@ export default {
           this.showDialogSpinner = false;
         });
       })
+    },
+    close: function(){
+      window.location = 'https://mebel.ru/bitrix/admin/';
     }
   },
   mounted: function () {
@@ -208,17 +217,7 @@ export default {
 </script>
 
 <style scoped>
-  .md-app {
-    border: 1px solid rgba(#000, .12);
-    width:100%;
-    height: 800px;
-  }
-
-  .md-app-drawer {
-    height: 735px;
-    position: relative;
-  }
-
+  
   .md-card {
     width: 100%;
   }
@@ -238,19 +237,6 @@ export default {
   }
   .md-list-item-button {
     padding-left: 10px!important;
-  }
-  #app {
-    border:1px solid red;
-    width:80vw;
-    height: 75vh;
-  }
-  .page-container {
-    border:1px solid green;
-  }
-  .md-select__catalog input {
-    background: transparent!important;
-    border: none;
-    box-shadow: none;
   }
 </style>
 
