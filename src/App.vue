@@ -21,9 +21,7 @@
       <md-tab id="tab-return"  md-icon="logout" md-label="Выйти" @click="close()"></md-tab>
     </md-tabs>
 
-    <transition  name="fade">
-      <router-view></router-view>
-    </transition>
+    <router-view></router-view>
   </div>
 </template>
 
