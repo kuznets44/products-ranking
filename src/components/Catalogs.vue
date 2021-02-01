@@ -20,7 +20,7 @@
           </md-field>
         </md-app-toolbar>
 
-        <md-app-drawer  md-permanent="full"   style="height:calc(100vh - 64px); overflow:auto;">
+        <md-app-drawer  md-permanent="full"   style="height:calc(100vh - 72px); overflow:auto;">
           <md-toolbar class="md-transparent" md-elevation="0">
             <span class="md-title">Параметры ранжирования</span>
           </md-toolbar>
@@ -52,7 +52,7 @@
 
 
 
-        <md-app-content  style="height:calc(100vh - 64px); overflow:auto;">
+        <md-app-content  style="height:calc(100vh - 72px - 64px); overflow:auto;">
           <Catalog :catalogId="catalogSelected" :rankingFactorsFlattened="rankingFactorsFlattened" />
         </md-app-content>
       </md-app>

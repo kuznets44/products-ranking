@@ -14,9 +14,9 @@
     </md-dialog>
 
     <md-tabs md-sync-route>
-      <md-tab id="tab-home" md-label="Каталоги" to="/" md-icon="shopping_cart" exact></md-tab>
-      <md-tab id="tab-manufacturers" md-label="Производители" to="/manufacturers" md-icon="build" exact></md-tab>
-      <md-tab id="tab-sellers" md-label="Продавцы" to="/sellers" md-icon="point_of_sale" exact></md-tab>
+      <md-tab id="tab-home" md-label="Каталоги" to="/" md-icon="shopping_cart"></md-tab>
+      <md-tab id="tab-manufacturers" md-label="Производители" to="/manufacturers/" md-icon="build"></md-tab>
+      <md-tab id="tab-sellers" md-label="Продавцы" to="/sellers/" md-icon="point_of_sale"></md-tab>
       <md-tab id="tab-apply"  md-icon="save" md-label="Сохранить" @click="save()"></md-tab>
       <md-tab id="tab-return"  md-icon="logout" md-label="Выйти" @click="close()"></md-tab>
     </md-tabs>
@@ -87,18 +87,16 @@ export default {
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         })
         .then(() => {
-
           this.dialogMessage = 'Обновляем данные продавцов';
           axios.post('https://mebel.ru/tools/api/product-ranking/sellers/','data=' + JSON.stringify(this.$store.getters.SELLERS),{
             withCredentials: false,
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
           })
           .then(() => {
-
-            this.dialogMessage = `Обновляем ранги товаров каталога "${this.catalogs[this.catalogSelected].name}"`;
+            this.dialogMessage = `Обновляем ранги товаров каталогов`;
             //обновляем каталог
             this.showDialogSpinner = true;
-            axios.post('https://mebel.ru/tools/api/product-ranking/products/',{
+            axios.post('https://mebel.ru/tools/api/product-ranking/products/','action=update',{
               withCredentials: false,
               headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             })
