@@ -12,7 +12,8 @@
             </md-field>
           </div>
           <div class="md-layout-item md-layout-item__checkbox">
-            <md-checkbox v-model="factor.active">Активен</md-checkbox>
+            <input type="checkbox" class="md-check" v-model="factor.active" :id="'act_' + factor.id" />
+            <label :for="'act_' + factor.id">Акт.</label>
           </div>
         </div>
       </md-list-item>
@@ -49,12 +50,12 @@ export default {
     FactorLogoLink,
     FactorSellerActions,
     FactorSellerArticles
-  }
+  },
 }
 </script>
 
 <style scoped>
   .md-layout-item__checkbox {
-    padding-top: 10px;
+    padding-top: 25px;
   }
 </style>

@@ -1,44 +1,11 @@
 <template>
   <div>
-    <!--
-    <md-table md-card>
-      <md-table-row>
-        <md-table-head md-numeric class="md-cell__position">#</md-table-head>
-        <md-table-head width="200">Название</md-table-head>
-        <md-table-head md-numeric>Ранг</md-table-head>
-        
-        <md-table-head  md-numeric  
-                        v-for="(factor,index) in rankingFactorsFlattened"
-                        :key="index">
-          {{ factor.shortName }} <small>({{ factor.weight }})</small>
-        </md-table-head>
-        
-      </md-table-row>
-
-      <md-table-row v-for="(product,index) in productsProcessed"
-                    :key="index">
-        <md-table-cell md-numeric class="md-cell__position">{{ index + 1 }}</md-table-cell>
-        <md-table-cell class="md-cell__name">{{ product.name }}</md-table-cell>
-        <md-table-cell md-numeric>{{ product.rank }}</md-table-cell>
-    
-        <md-table-cell md-numeric
-                        v-for="(factor,index) in rankingFactorsFlattened"
-                        :key="index">
-          {{ product.factorValues[factor.id] }}
-        </md-table-cell>
-        
-      </md-table-row>
-    </md-table>
-    -->
-    <md-table v-model="productsProcessed" md-card>
-      <!--
-      <md-table-toolbar>
-        <h1 class="md-title">Users</h1>
-      </md-table-toolbar>
-      -->
+    <md-table v-if="catalogId !== undefined" v-model="productsProcessed" md-card>
       <md-table-row slot="md-table-row" slot-scope="{ item, index }">
         <md-table-cell md-label="ID" width="50">{{ index + 1 }}</md-table-cell>
         <md-table-cell md-label="Название" class="md-cell__name">{{ item.name }}<div style="width:200px"></div></md-table-cell>
+        <md-table-cell md-label="Производитель" class="md-cell__name">{{ item.manufacturerName }}</md-table-cell>
+        <md-table-cell md-label="Продавец" class="md-cell__name">{{ item.sellerName }}</md-table-cell>
         <md-table-cell md-label="Ранг" class="md-cell__rank">{{ item.rank }}</md-table-cell>
 
         <md-table-cell  v-for="(factor,i) in rankingFactorsFlattened"
@@ -47,6 +14,12 @@
                         width="50">{{ item.factorValues[factor.id] }}</md-table-cell>
       </md-table-row>
     </md-table>
+    <md-empty-state
+      v-if="catalogId == undefined"
+      md-icon="devices_other"
+      md-label="Выберите каталог"
+      md-description="">
+    </md-empty-state>
   </div>
 </template>
 
@@ -54,33 +27,38 @@
 
 export default {
   name: 'Catalog',
-  props: ['products','rankingFactorsFlattened'],
+  props: ['catalogId','rankingFactorsFlattened'],
   data: function() {
     return {
-      //rankingFactorsFlattened: this.getRankingFactorsFlatenned(),
-      productsProcessed: this.processProductsData()
+      productsProcessed: [],
     }
   },
   methods: {
     processProductsData: function(){
       let result = [];
-      this.products.forEach((product) => {
+      let products = this.$store.getters.CATALOGS_DATA[this.catalogId];
+      
+      products.forEach((product) => {
+        product.manufacturer = this.$store.getters.MANUFACTURERS.find(element => element.id == product.manufacturerId ? element : undefined);
+        product.seller = this.$store.getters.SELLERS.find(element => element.id == product.sellerId ? element : undefined);
         let rank = 0;
         let factorValues = [];
         for(var factorId in this.rankingFactorsFlattened) {
           let factor = this.rankingFactorsFlattened[factorId];
           let total = 0;
-          //if(factor.active) {
+          if(factor.active) {
             let factorValue = factor.getValue(product);
             total = factorValue * factor.weight;
             rank += total;
-          //}
+          }
           factorValues[factor.id] = total;
         }
         result.push({
-          'id': product.ID,
-          'name': product.NAME,
+          'id': product.id,
+          'name': product.name,
           'rank': rank,
+          'sellerName': product.seller ? product.seller.name : '',
+          'manufacturerName': product.manufacturer ? product.manufacturer.name : '',
           'factorValues': factorValues
         });
       });
@@ -88,15 +66,28 @@ export default {
       return result.slice(0,36);
     }
   },
+  
   watch: {
+    catalogId: {
+      immediate: true,
+      handler: function() {
+        //console.log('catalogId changed',this.catalogId);
+        if(this.catalogId !== undefined) {
+          setTimeout(() => this.productsProcessed = this.processProductsData(), 10);
+        }
+      }
+    },
     rankingFactorsFlattened: {
       deep: true,
       immediate: true,
       handler: function() {
-        this.productsProcessed = this.processProductsData();
+        if(this.catalogId !== undefined) {
+          setTimeout(() => this.productsProcessed = this.processProductsData(), 10);
+        }
       }
     }
   }
+  
 }
 </script>
 
