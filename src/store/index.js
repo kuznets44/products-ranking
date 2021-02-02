@@ -138,14 +138,5 @@ export const store = new Vuex.Store({
       });
       context.commit('SET_RANKING_FACTORS', rankingFactors);
     },
-    /*
-    SAVE_FACTORS: async (context) => {
-      let { data } = axios.post('https://mebel.ru/tools/api/product-ranking/factors/','data=' + JSON.stringify(context.state.),{
-        withCredentials: false,
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      })
-      context.commit('SET_SELLERS', data);
-    }
-    */
   }
 });

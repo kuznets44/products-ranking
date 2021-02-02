@@ -23,6 +23,11 @@
         <md-app-drawer  md-permanent="full"   style="height:calc(100vh - 72px); overflow:auto;">
           <md-toolbar class="md-transparent" md-elevation="0">
             <span class="md-title">Параметры ранжирования</span>
+            <md-button  class="md-icon-button md-icon-button-right md-raised md-accent"
+                        :disabled="!catalogSelected"
+                        @click="refresh()">
+              <md-icon>refresh</md-icon>
+            </md-button>
           </md-toolbar>
 
           <md-list>
@@ -41,13 +46,6 @@
               </md-list>
             </md-list-item>
           </md-list>
-
-          <md-bottom-bar>
-            <md-bottom-bar-item md-label="Просмотреть изменения" md-icon="refresh" @click="refresh"></md-bottom-bar-item>
-            <md-bottom-bar-item md-label="Сохранить" md-icon="save" @click="saveParams"></md-bottom-bar-item>
-            <md-bottom-bar-item md-label="Закрыть" md-icon="close" @click="close"></md-bottom-bar-item>
-          </md-bottom-bar>
-
         </md-app-drawer>
 
 
@@ -86,7 +84,8 @@ export default {
       productsProcessed: [],
       showSpinner: false,
       showDialogSpinner: false,
-      factorsChanged: false
+      factorsChanged: false,
+      //refreshButtonDisabled: true
     }
   },
   methods: {
@@ -114,31 +113,6 @@ export default {
     refresh: function() {
       this.$store.commit('SET_RANKING_FACTORS', this.rankingFactorsAsync);
       this.rankingFactorsFlattened = this.getRankingFactorsFlatenned();
-    },
-    saveParams: function() {
-      this.showDialog = true;
-      axios.post('https://mebel.ru/tools/api/product-ranking/factors/','data=' + JSON.stringify(this.rankingFactorsAsync),{
-        withCredentials: false,
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      })
-      .then(() => {
-        this.dialogMessage = `Обновляем ранги товаров каталога "${this.catalogs[this.catalogSelected].name}"`;
-        //обновляем каталог
-        this.showDialogSpinner = true;
-        axios.post('https://mebel.ru/tools/api/product-ranking/products/','catalog=' + this.catalogSelected,{
-          withCredentials: false,
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        })
-        .then(() => {
-          this.dialogMessage = 'Ранги товаров обновлены!';
-          this.showDialogSpinner = false;
-        })
-        .catch((err) => {
-          console.log(err);
-          this.dialogMessage = 'Ранги товаров обновлены!';
-          this.showDialogSpinner = false;
-        });
-      })
     },
     close: function(){
       window.location = 'https://mebel.ru/bitrix/admin/';
@@ -177,17 +151,17 @@ export default {
         });
         this.rankingFactorsFlattened = this.getRankingFactorsFlatenned();
         this.$store.commit('SET_RANKING_FACTORS', this.rankingFactorsAsync);
-      });
-    axios.get('https://mebel.ru/tools/api/product-ranking/catalogs/')
-      .then((response) => {  
-        response.data.forEach(catalog => this.catalogs[catalog.id] = catalog);
-      });
-      
+      });      
   }
 }
 </script>
 
 <style scoped>
+
+  .md-icon-button-right {
+    position:absolute;
+    right: 10px;
+  }
   
   .md-card {
     width: 100%;

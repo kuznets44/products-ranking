@@ -6,7 +6,8 @@
         <md-table-cell md-label="Название" class="md-cell__name">{{ item.name }}<div style="width:200px"></div></md-table-cell>
         <md-table-cell md-label="Производитель" class="md-cell__name">{{ item.manufacturerName }}</md-table-cell>
         <md-table-cell md-label="Продавец" class="md-cell__name">{{ item.sellerName }}</md-table-cell>
-        <md-table-cell md-label="Ранг" class="md-cell__rank">{{ item.rank }}</md-table-cell>
+        <md-table-cell md-label="Цена" class="md-cell__name">{{ item.price }}</md-table-cell>
+        <md-table-cell md-label="Ранг" class="md-cell__rank"><b>{{ item.rank }}</b></md-table-cell>
 
         <md-table-cell  v-for="(factor,i) in rankingFactorsFlattened"
                         :key="i"
@@ -31,38 +32,52 @@ export default {
   data: function() {
     return {
       productsProcessed: [],
+      productsProcessing: false,
     }
   },
   methods: {
     processProductsData: function(){
       let result = [];
-      let products = this.$store.getters.CATALOGS_DATA[this.catalogId];
-      
-      products.forEach((product) => {
-        product.manufacturer = this.$store.getters.MANUFACTURERS.find(element => element.id == product.manufacturerId ? element : undefined);
-        product.seller = this.$store.getters.SELLERS.find(element => element.id == product.sellerId ? element : undefined);
-        let rank = 0;
-        let factorValues = [];
-        for(var factorId in this.rankingFactorsFlattened) {
-          let factor = this.rankingFactorsFlattened[factorId];
-          let total = 0;
-          if(factor.active) {
-            let factorValue = factor.getValue(product);
-            total = factorValue * factor.weight;
-            rank += total;
+      if(this.catalogId) {
+        console.log('start proc');
+        let products = this.$store.getters.CATALOGS_DATA[this.catalogId];
+        
+        products.forEach((product) => {
+          product.manufacturer = this.$store.getters.MANUFACTURERS.find(element => element.id == product.manufacturerId ? element : undefined);
+          product.seller = this.$store.getters.SELLERS.find(element => element.id == product.sellerId ? element : undefined);
+          let rank = 0;
+          let factorValues = [];
+          for(var factorId in this.rankingFactorsFlattened) {
+            let factor = this.rankingFactorsFlattened[factorId];
+            let total = 0;
+            if(factor.active) {
+              let factorValue = factor.getValue(product);
+              total = factorValue * factor.weight;
+              rank += total;
+            }
+            factorValues[factor.id] = total;
           }
-          factorValues[factor.id] = total;
-        }
-        result.push({
-          'id': product.id,
-          'name': product.name,
-          'rank': rank,
-          'sellerName': product.seller ? product.seller.name : '',
-          'manufacturerName': product.manufacturer ? product.manufacturer.name : '',
-          'factorValues': factorValues
+          result.push({
+            'id': product.id,
+            'name': product.name,
+            'rank': rank,
+            'price': parseInt(product.price),
+            'sellerName': product.seller ? product.seller.name : '',
+            'manufacturerName': product.manufacturer ? product.manufacturer.name : '',
+            'factorValues': factorValues
+          });
         });
-      });
-      result.sort((a, b) => a.rank < b.rank ? 1 : -1);
+        result.sort((a, b) => {
+          if(a.rank == b.rank) {
+            return a.price == b.price ? 0 : (a.price > b.price ? 1 : -1);
+          } else {
+            return a.rank < b.rank ? 1 : -1;
+          }
+          
+        });
+        console.log('end proc');
+
+      }
       return result.slice(0,36);
     }
   },
@@ -71,9 +86,13 @@ export default {
     catalogId: {
       immediate: true,
       handler: function() {
-        //console.log('catalogId changed',this.catalogId);
         if(this.catalogId !== undefined) {
-          setTimeout(() => this.productsProcessed = this.processProductsData(), 10);
+          setTimeout(() => {
+            console.log('catalogId changed',this.catalogId);
+            this.productsProcessing = true;
+            this.productsProcessed = this.processProductsData();
+            this.productsProcessing = false;
+          }, 10);
         }
       }
     },

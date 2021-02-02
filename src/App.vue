@@ -43,7 +43,6 @@ export default {
       rankingFactorsFlattened: [],
       manufacturers: [],
       sellers: [],
-      catalogs: [],
       showDialog: false,
       dialogMessage: '',
       showDialogSpinner: false
@@ -71,47 +70,66 @@ export default {
       });
       return result;
     },
-    save: function() {
+    save: async function() {
       this.showDialog = true;
       
       this.dialogMessage = `Обновляем параметры показателей ранжирования`;
-      axios.post('https://mebel.ru/tools/api/product-ranking/factors/','data=' + JSON.stringify(this.$store.getters.RANKING_FACTORS),{
-        withCredentials: false,
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      })
-      .then(() => {
-
-        this.dialogMessage = 'Обновляем данные производителей';
-        axios.post('https://mebel.ru/tools/api/product-ranking/manufacturers/','data=' + JSON.stringify(this.$store.getters.MANUFACTURERS),{
+      await axios.post(
+        'https://mebel.ru/tools/api/product-ranking/factors/',
+        'data=' + JSON.stringify(this.$store.getters.RANKING_FACTORS),{
           withCredentials: false,
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        })
-        .then(() => {
-          this.dialogMessage = 'Обновляем данные продавцов';
-          axios.post('https://mebel.ru/tools/api/product-ranking/sellers/','data=' + JSON.stringify(this.$store.getters.SELLERS),{
+          headers: { 
+            'Content-Type': 'application/x-www-form-urlencoded' 
+          },
+        }
+      );
+      
+      this.dialogMessage = 'Обновляем данные производителей';
+        
+      await axios.post(
+        'https://mebel.ru/tools/api/product-ranking/manufacturers/',
+        'data=' + JSON.stringify(this.$store.getters.MANUFACTURERS), {
+          withCredentials: false,
+          headers: { 
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+        }
+      );
+      
+      this.dialogMessage = 'Обновляем данные продавцов';
+      
+      await axios.post(
+        'https://mebel.ru/tools/api/product-ranking/sellers/',
+        'data=' + JSON.stringify(this.$store.getters.SELLERS),  {
+          withCredentials: false,
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+        }
+      );
+      
+      //обновляем каталог
+      this.showDialogSpinner = true;
+
+      let catalogs = this.$store.getters.CATALOGS;
+      console.log(catalogs);
+      for (let i in catalogs) {
+        let catalog = catalogs[i];
+        this.dialogMessage = `Обновляем ранги товаров каталога "${catalog.name}"`;
+
+        await axios.post(
+          'https://mebel.ru/tools/api/product-ranking/products/',
+          `action=update&iblock_id=${catalog.id}`,{
             withCredentials: false,
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          })
-          .then(() => {
-            this.dialogMessage = `Обновляем ранги товаров каталогов`;
-            //обновляем каталог
-            this.showDialogSpinner = true;
-            axios.post('https://mebel.ru/tools/api/product-ranking/products/','action=update',{
-              withCredentials: false,
-              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            })
-            .then(() => {
-              this.dialogMessage = 'Ранги товаров обновлены!';
-              this.showDialogSpinner = false;
-            })
-            .catch((err) => {
-              console.log(err);
-              this.dialogMessage = 'Ранги товаров обновлены!';
-              this.showDialogSpinner = false;
-            });
-          })
-        })
-      })
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded'
+            },
+          }
+        );
+      }
+            
+      this.dialogMessage = 'Ранги товаров обновлены!';
+      this.showDialogSpinner = false;
     },
     close: function(){
       window.location = 'https://mebel.ru/bitrix/admin/';
