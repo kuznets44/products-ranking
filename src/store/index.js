@@ -7,18 +7,7 @@ Vue.use(Vuex);
 
 export const store = new Vuex.Store({
   state: {
-    catalogs: [
-      {"id":"1","name":"Кухни"},
-      {"id":"2","name":"Диваны"},
-      {"id":"3","name":"Шкафы"},
-      {"id":"29","name":"Матрасы"},
-      {"id":"40","name":"Кресла"},
-      {"id":"41","name":"Столы"},
-      {"id":"42","name":"Стулья"},
-      {"id":"43","name":"Комоды и тумбы"},
-      {"id":"48","name":"Кровати"},
-      {"id":"49","name":"Садовая мебель"}
-    ],
+    catalogs: [],
     catalogData: [],
     sellers: [],
     manufacturers: [],
@@ -88,7 +77,23 @@ export const store = new Vuex.Store({
       let {data} = await axios.get('https://mebel.ru/tools/api/product-ranking/manufacturers/');
       context.commit('SET_MANUFACTURERS', data);
     },
-    GET_CATALOGS: (context) => {
+    GET_CATALOGS: async (context) => {
+      let {data} = await axios.get('https://mebel.ru/tools/api/product-ranking/catalogs/')
+      context.commit('SET_CATALOGS', data);
+    },
+    GET_CATALOG_DATA: (context, payload) => {
+      return new Promise( (resolve) => {
+        axios.get('https://mebel.ru/tools/api/product-ranking/products/?catalog=' + payload.catalogId)
+        .then( (response) => {
+          context.commit('SET_CATALOG_DATA', {
+            catalogId: payload.catalogId,
+            catalogData: response.data
+          });
+          resolve();
+        });
+      });
+    },
+    GET_CATALOGS_DATA: (context) => {
       context.state.catalogs.forEach(async (item) => {
         let {data} = await axios.get('https://mebel.ru/tools/api/product-ranking/products/?catalog=' + item.id)
         console.log('Каталог ' + item.name + ' загружен!');
@@ -106,6 +111,48 @@ export const store = new Vuex.Store({
         catalogData: data
       });
       callback();
+    },
+    GET_RANKING_SYSTEM_DATA: async ( context ) => {
+
+      let [sellers, manufacturers, catalogs, rankingFactors] = await Promise.all([
+        axios.get('https://mebel.ru/tools/api/product-ranking/sellers/'),
+        axios.get('https://mebel.ru/tools/api/product-ranking/manufacturers/'),
+        axios.get('https://mebel.ru/tools/api/product-ranking/catalogs/'),
+        axios.get('https://mebel.ru/tools/api/product-ranking/factors/'),
+      ]);
+
+      context.commit('SET_SELLERS', sellers.data);
+      context.commit('SET_MANUFACTURERS', manufacturers.data);
+      context.commit('SET_CATALOGS', catalogs.data);
+
+      let rankingsFactorsAsync = [];
+      rankingFactors.data.forEach((item) => {
+        let factors = [];
+        for(let i in item.factors) {
+          let factor = item.factors[i];
+          factors.push(new RankingFactor(
+            factor.id,
+            factor.name,
+            factor.shortName,
+            factor.weight,
+            factor.paramsComponent,
+            eval(`(function(product) {
+              ${factor.functionCode}
+            })`),
+            factor.params,
+            factor.active == 'Y' ? true : false
+          ));
+        }
+        rankingsFactorsAsync.push({
+          id: item.id,
+          name: item.name,
+          icon: 'settings',
+          expanded: true,
+          factors: factors
+        });
+      });
+
+      context.commit('SET_RANKING_FACTORS', rankingsFactorsAsync);
     },
     GET_RANKING_FACTORS: async (context) => {
       let {data} = await axios.get('https://mebel.ru/tools/api/product-ranking/factors/');

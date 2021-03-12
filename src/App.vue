@@ -1,4 +1,70 @@
 <template>
+  <div>
+    <div v-if="!dataLoaded" :style="{
+      width: '100%',
+      height: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    }">
+      <v-progress-circular
+        :size="100"
+        color="blue"
+        indeterminate
+      ></v-progress-circular>
+    </div>
+    <v-app v-if="dataLoaded" id="app">
+
+      <v-dialog
+        v-model="showDialog"
+        max-width="500px"
+        persistent
+      >
+        <v-card>
+          <v-card-title>
+            Сохранение данных
+          </v-card-title>
+          <v-card-text>
+            {{ dialogMessage }}
+          </v-card-text>
+        </v-card>
+
+      </v-dialog>
+
+        <v-tabs left icons-and-text>
+          <v-tab to="/" ripple>
+            Каталоги
+            <v-icon>mdi-cart-variant</v-icon>
+          </v-tab>
+          <v-tab to="/manufacturers/" ripple>
+            Производители
+            <v-icon>mdi-wrench</v-icon>
+          </v-tab>
+          <v-tab to="/sellers/" ripple>
+            Продавцы
+            <v-icon>mdi-point-of-sale</v-icon>
+          </v-tab>
+          <v-tab @click="save" ripple>
+            Сохранить
+            <v-icon>mdi-content-save</v-icon>
+          </v-tab>
+          <v-tab @click="close" ripple>
+            Выйти
+            <v-icon>mdi-logout</v-icon>
+          </v-tab>
+        </v-tabs>
+
+
+      <v-main>
+        <router-view></router-view>
+      </v-main>
+    </v-app>
+
+  </div>
+</template>
+
+<!--
+<template>
   <div id="app">
     <md-dialog :md-active.sync="showDialog">
       <md-dialog-title>Сохранение изменений</md-dialog-title>
@@ -24,6 +90,7 @@
     <router-view></router-view>
   </div>
 </template>
+-->
 
 <script>
 import Catalogs from './components/Catalogs';
@@ -39,6 +106,7 @@ export default {
   ],
   data() {
     return {
+      dataLoaded: false,
       rankingFactors: [],
       rankingFactorsFlattened: [],
       manufacturers: [],
@@ -135,11 +203,9 @@ export default {
       window.location = 'https://mebel.ru/bitrix/admin/';
     }
   },
-  beforeMount(){
-    //this.$store.dispatch('GET_RANKING_FACTORS');
-    this.$store.dispatch('GET_SELLERS');
-    this.$store.dispatch('GET_MANUFACTURERS');
-    this.$store.dispatch('GET_CATALOGS');
+  beforeCreate() {
+      this.$store.dispatch('GET_RANKING_SYSTEM_DATA')
+        .then( () => this.dataLoaded = true);
   },
 }
 </script>

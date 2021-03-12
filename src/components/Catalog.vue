@@ -1,5 +1,23 @@
 <template>
-  <div>
+  <v-container>
+    <v-data-table v-if="catalogDataProcessed.length !== 0"
+      :headers="headers"
+      :items="catalogDataProcessed"
+      :items-per-page="15"
+      class="elevation-1"
+      dense
+      sort-by="rank"
+      sort-desc
+    >
+
+      <template v-slot:item.index="{ item }">
+        {{ item.index }}
+        
+      </template>
+
+      
+    </v-data-table>
+    <!--
     <md-table v-if="catalogId !== undefined" v-model="productsProcessed" md-card>
       <md-table-row slot="md-table-row" slot-scope="{ item, index }">
         <md-table-cell md-label="ID" width="50">{{ index + 1 }}</md-table-cell>
@@ -21,28 +39,71 @@
       md-label="Выберите каталог"
       md-description="">
     </md-empty-state>
-  </div>
+    -->
+  </v-container>
 </template>
 
 <script>
+
+  const loadCatalog = async function() {
+    this.catalogData = [];
+
+    if(this.$store.getters.CATALOGS_DATA[this.catalogId] == undefined) {
+      this.$store.dispatch('GET_CATALOG_DATA',{catalogId: this.catalogId})
+        .then(() => this.catalogData = this.$store.getters.CATALOGS_DATA[this.catalogId]);
+    } else {
+      this.catalogData = this.$store.getters.CATALOGS_DATA[this.catalogId];
+    }
+  };
 
 export default {
   name: 'Catalog',
   props: ['catalogId','rankingFactorsFlattened'],
   data: function() {
     return {
-      productsProcessed: [],
+      catalogData: [],
       productsProcessing: false,
+      headers: [
+        {
+          text: "#",
+          value: 'index',
+          width: 50
+        },
+        {
+          text: 'Название',
+          value: 'name',
+          width: 300
+        },
+        {
+          text: 'Производитель',
+          value: 'manufacturerName',
+          width: 150
+        },
+        {
+          text: 'Продавец',
+          value: 'sellerName',
+          width: 150
+        },
+        {
+          text: 'Цена',
+          value: 'price'
+        },
+        {
+          text: 'Ранг',
+          value: 'rank'
+        }
+      ]
     }
   },
-  methods: {
-    processProductsData: function(){
+  beforeMount: loadCatalog,
+  beforeUpdate: loadCatalog,
+  computed: {
+    catalogDataProcessed() {
       let result = [];
       if(this.catalogId) {
         console.log('start proc');
-        let products = this.$store.getters.CATALOGS_DATA[this.catalogId];
         
-        products.forEach((product) => {
+        this.catalogData.forEach((product) => {
           product.manufacturer = this.$store.getters.MANUFACTURERS.find(element => element.id == product.manufacturerId ? element : undefined);
           product.seller = this.$store.getters.SELLERS.find(element => element.id == product.sellerId ? element : undefined);
           let rank = 0;
@@ -58,6 +119,7 @@ export default {
             factorValues[factor.id] = total;
           }
           result.push({
+            'index': null,
             'id': product.id,
             'name': product.name,
             'rank': rank,
@@ -75,13 +137,20 @@ export default {
           }
           
         });
+        result = result.map( (item, index) => {
+          let itemIndexed = item;
+          itemIndexed.index = index + 1;
+          return itemIndexed;
+        } ); 
         console.log('end proc');
 
       }
-      return result.slice(0,36);
+      return result;
     }
+  
   },
   
+  /*
   watch: {
     catalogId: {
       immediate: true,
@@ -106,6 +175,7 @@ export default {
       }
     }
   }
+  */
   
 }
 </script>
@@ -125,5 +195,12 @@ export default {
   }
   .md-table-cell-container {
     padding: 6px 12px 6px 12px;
+  }
+
+  .v-application--wrap {
+    min-height: calc(100vh - 136px);
+  }
+  .container {
+    margin-top: 25px;
   }
 </style>

@@ -1,5 +1,50 @@
 <template>
   <div>
+    <v-list-item-title>{{ factor.name }}</v-list-item-title>
+    <v-list>
+      <v-list-item>
+        <v-text-field
+          dense
+          label="Вес"
+          v-model="factor.weight"
+          :rules="weightRules"
+          hide-details="auto"
+        ></v-text-field>
+        <v-container
+          class="px-0"
+          fluid
+        >
+          <v-checkbox
+            dense
+            v-model="factor.active"
+            label="Акт."
+          ></v-checkbox>
+        </v-container>
+        <!--
+        <div class="md-layout">
+          <div class="md-layout-item">
+            <md-field>
+              <label>Вес</label>
+              <md-input type="number" v-model="factor.weight"></md-input>
+            </md-field>
+          </div>
+          <div class="md-layout-item md-layout-item__checkbox">
+            <input type="checkbox" class="md-check" v-model="factor.active" :id="'act_' + factor.id" />
+            <label :for="'act_' + factor.id">Акт.</label>
+          </div>
+        </div>
+        -->
+      </v-list-item>
+      <v-list-item v-if="factor.paramsComponent !== null" >
+        <component :is="factor.paramsComponent" :params="factor.params"></component>
+      </v-list-item>
+    </v-list>
+  </div>
+</template>
+
+<!--
+<template>
+  <div>
     <md-subheader>{{ factor.name }}</md-subheader>
     
     <md-list>
@@ -23,6 +68,7 @@
     </md-list>
   </div>
 </template>
+-->
 
 <script>
 import FactorPhotosCount from './FactorsParams/FactorPhotosCount.vue';
@@ -51,11 +97,24 @@ export default {
     FactorSellerActions,
     FactorSellerArticles
   },
+  data() {
+    return {
+      weightRules: [
+        value => !!value || 'Обязательное поле'
+      ]
+    };
+  }
 }
 </script>
 
 <style scoped>
   .md-layout-item__checkbox {
     padding-top: 25px;
+  }
+  .v-list {
+    margin-bottom: 20px!important;
+  }
+  .v-list-item {
+    padding:0!important;
   }
 </style>
