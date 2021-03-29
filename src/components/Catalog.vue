@@ -1,9 +1,9 @@
 <template>
   <v-container>
-    <v-data-table v-if="catalogDataProcessed.length !== 0"
+    <v-data-table v-if="catalogDataProcessed.length !== 0 && !productsProcessing"
       :headers="headers"
       :items="catalogDataProcessed"
-      :items-per-page="15"
+      :items-per-page="36"
       class="elevation-1"
       dense
       sort-by="rank"
@@ -12,34 +12,14 @@
 
       <template v-slot:item.index="{ item }">
         {{ item.index }}
-        
       </template>
 
-      
-    </v-data-table>
-    <!--
-    <md-table v-if="catalogId !== undefined" v-model="productsProcessed" md-card>
-      <md-table-row slot="md-table-row" slot-scope="{ item, index }">
-        <md-table-cell md-label="ID" width="50">{{ index + 1 }}</md-table-cell>
-        <md-table-cell md-label="Название" class="md-cell__name">{{ item.name }}<div style="width:200px"></div></md-table-cell>
-        <md-table-cell md-label="Производитель" class="md-cell__name">{{ item.manufacturerName }}</md-table-cell>
-        <md-table-cell md-label="Продавец" class="md-cell__name">{{ item.sellerName }}</md-table-cell>
-        <md-table-cell md-label="Цена" class="md-cell__name">{{ item.price }}</md-table-cell>
-        <md-table-cell md-label="Ранг" class="md-cell__rank"><b>{{ item.rank }}</b></md-table-cell>
+      <template v-slot:item.name="{ item }">
+        <a :href="`https://mebel.ru${item.url}`" target="_blank">{{ item.name }}</a>
+      </template>
 
-        <md-table-cell  v-for="(factor,i) in rankingFactorsFlattened"
-                        :key="i"
-                        :md-label="factor.shortName"
-                        width="50">{{ item.factorValues[factor.id] }}</md-table-cell>
-      </md-table-row>
-    </md-table>
-    <md-empty-state
-      v-if="catalogId == undefined"
-      md-icon="devices_other"
-      md-label="Выберите каталог"
-      md-description="">
-    </md-empty-state>
-    -->
+      <v-data-footer disable-items-per-page></v-data-footer>
+    </v-data-table>
   </v-container>
 </template>
 
@@ -50,9 +30,13 @@
 
     if(this.$store.getters.CATALOGS_DATA[this.catalogId] == undefined) {
       this.$store.dispatch('GET_CATALOG_DATA',{catalogId: this.catalogId})
-        .then(() => this.catalogData = this.$store.getters.CATALOGS_DATA[this.catalogId]);
+        .then(() => {
+          this.catalogData = this.$store.getters.CATALOGS_DATA[this.catalogId]
+          this.catalogDataProcessed = this.processProductsData();
+        });
     } else {
       this.catalogData = this.$store.getters.CATALOGS_DATA[this.catalogId];
+      this.catalogDataProcessed = this.processProductsData();
     }
   };
 
@@ -60,45 +44,63 @@ export default {
   name: 'Catalog',
   props: ['catalogId','rankingFactorsFlattened'],
   data: function() {
+
+    const headers = [
+      {
+        text: "#",
+        value: 'index',
+        width: 50
+      },
+      {
+        text: 'Название',
+        value: 'name',
+        width: 300
+      },
+      {
+        text: 'Производитель',
+        value: 'manufacturerName',
+        width: 150
+      },
+      {
+        text: 'Продавец',
+        value: 'sellerName',
+        width: 150
+      },
+      {
+        text: 'Цена',
+        value: 'price'
+      },
+      {
+        text: 'Ранг',
+        value: 'rank'
+      }
+    ];
+
+
+    this.rankingFactorsFlattened.forEach( (item) => {
+      if(item.active) {
+        headers.push({
+          text: item.shortName,
+          value: `factor_${item.id}`
+        })
+      }
+    });
+
     return {
       catalogData: [],
       productsProcessing: false,
-      headers: [
-        {
-          text: "#",
-          value: 'index',
-          width: 50
-        },
-        {
-          text: 'Название',
-          value: 'name',
-          width: 300
-        },
-        {
-          text: 'Производитель',
-          value: 'manufacturerName',
-          width: 150
-        },
-        {
-          text: 'Продавец',
-          value: 'sellerName',
-          width: 150
-        },
-        {
-          text: 'Цена',
-          value: 'price'
-        },
-        {
-          text: 'Ранг',
-          value: 'rank'
-        }
-      ]
+      catalogDataProcessed: [],
+      headers: headers
     }
   },
   beforeMount: loadCatalog,
   beforeUpdate: loadCatalog,
-  computed: {
-    catalogDataProcessed() {
+  methods: {
+    setProcessing( val ) {
+      this.productsProcessing = val;
+    },
+    processProductsData() {
+      this.setProcessing(true);
       let result = [];
       if(this.catalogId) {
         console.log('start proc');
@@ -107,28 +109,31 @@ export default {
           product.manufacturer = this.$store.getters.MANUFACTURERS.find(element => element.id == product.manufacturerId ? element : undefined);
           product.seller = this.$store.getters.SELLERS.find(element => element.id == product.sellerId ? element : undefined);
           let rank = 0;
-          let factorValues = [];
-          for(var factorId in this.rankingFactorsFlattened) {
-            let factor = this.rankingFactorsFlattened[factorId];
+
+          const productProcessed = {
+            'index': null,
+            'id': product.id,
+            'name': product.name,
+            'url': product.url,
+            'price': parseInt(product.price),
+            'sellerName': product.seller ? product.seller.name : '',
+            'manufacturerName': product.manufacturer ? product.manufacturer.name : '',
+          };
+          
+          this.rankingFactorsFlattened.forEach( (factor) => {
             let total = 0;
             if(factor.active) {
               let factorValue = factor.getValue(product);
               total = factorValue * factor.weight;
               rank += total;
             }
-            factorValues[factor.id] = total;
-          }
-          result.push({
-            'index': null,
-            'id': product.id,
-            'name': product.name,
-            'rank': rank,
-            'price': parseInt(product.price),
-            'sellerName': product.seller ? product.seller.name : '',
-            'manufacturerName': product.manufacturer ? product.manufacturer.name : '',
-            'factorValues': factorValues
+            productProcessed['factor_' + factor.id] = total;
           });
+          productProcessed.rank = rank;
+          
+          result.push(productProcessed);
         });
+
         result.sort((a, b) => {
           if(a.rank == b.rank) {
             return a.price == b.price ? 0 : (a.price > b.price ? 1 : -1);
@@ -142,45 +147,42 @@ export default {
           itemIndexed.index = index + 1;
           return itemIndexed;
         } ); 
+
         console.log('end proc');
 
       }
+      this.setProcessing(false);
       return result;
     }
-  
   },
   
-  /*
   watch: {
     catalogId: {
       immediate: true,
       handler: function() {
         if(this.catalogId !== undefined) {
-          setTimeout(() => {
             console.log('catalogId changed',this.catalogId);
             this.productsProcessing = true;
-            this.productsProcessed = this.processProductsData();
+            this.catalogDataProcessed = this.processProductsData();
             this.productsProcessing = false;
-          }, 10);
         }
       }
     },
     rankingFactorsFlattened: {
-      deep: true,
       immediate: true,
       handler: function() {
         if(this.catalogId !== undefined) {
-          setTimeout(() => this.productsProcessed = this.processProductsData(), 10);
+          this.catalogDataProcessed = this.processProductsData();
         }
       }
     }
   }
-  */
+  
   
 }
 </script>
 
-<style>
+<style scoped>
   .md-cell__position {
     width:30px;
   }
@@ -196,11 +198,12 @@ export default {
   .md-table-cell-container {
     padding: 6px 12px 6px 12px;
   }
-
-  .v-application--wrap {
-    min-height: calc(100vh - 136px);
+  .v-data-footer__select {
+    display: none!important;;
   }
   .container {
     margin-top: 25px;
+    height: calc(100vh - 164px);
+    overflow: auto;
   }
 </style>

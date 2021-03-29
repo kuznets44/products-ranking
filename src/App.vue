@@ -63,34 +63,7 @@
   </div>
 </template>
 
-<!--
-<template>
-  <div id="app">
-    <md-dialog :md-active.sync="showDialog">
-      <md-dialog-title>Сохранение изменений</md-dialog-title>
 
-      <md-dialog-content>
-        {{ dialogMessage }}
-        <md-progress-bar v-if="showDialogSpinner" md-mode="query"></md-progress-bar>
-      </md-dialog-content>
-
-      <md-dialog-actions>
-        <md-button class="md-primary" @click="showDialog = false">Close</md-button>
-      </md-dialog-actions>
-    </md-dialog>
-
-    <md-tabs md-sync-route>
-      <md-tab id="tab-home" md-label="Каталоги" to="/" md-icon="shopping_cart"></md-tab>
-      <md-tab id="tab-manufacturers" md-label="Производители" to="/manufacturers/" md-icon="build"></md-tab>
-      <md-tab id="tab-sellers" md-label="Продавцы" to="/sellers/" md-icon="point_of_sale"></md-tab>
-      <md-tab id="tab-apply"  md-icon="save" md-label="Сохранить" @click="save()"></md-tab>
-      <md-tab id="tab-return"  md-icon="logout" md-label="Выйти" @click="close()"></md-tab>
-    </md-tabs>
-
-    <router-view></router-view>
-  </div>
-</template>
--->
 
 <script>
 import Catalogs from './components/Catalogs';
@@ -209,3 +182,12 @@ export default {
   },
 }
 </script>
+
+<style>
+  .v-application--wrap {
+    min-height: calc(100% - 136px);
+  }
+  .v-data-footer__select {
+    display: none!important;;
+  }
+</style>

@@ -11,9 +11,20 @@
       <v-list-item>
         <v-list-item-content>
           <v-list-item-title class="title">
-            Показатели ранжирования
+            Показатели
           </v-list-item-title>
         </v-list-item-content>
+        <v-divider></v-divider>
+        <v-btn
+          fab
+          dark
+          small
+          color="pink"
+          @click="refresh()"
+          :disabled="catalogSelected == undefined"
+        >
+          <v-icon dark>refresh</v-icon>
+        </v-btn>
       </v-list-item>
     </v-list>
 
@@ -23,7 +34,6 @@
         <v-list-group
           v-for="(factorGroup,index) in rankingFactorsAsync"
           :key="index"
-          v-model="factorGroup.active"
           prepend-icon="mdi-cog"
           no-action
         >
@@ -74,67 +84,7 @@
   </v-app>
 </template>
 
-<!--
-<template>
-  <div id="catalogs">
-    <div class="page-container">
-      <md-app md-scrollbar>
-        <md-app-toolbar class="md-primary">
-          <md-field>
-            <label for="catalog">Каталог</label>
-            <md-select v-model="catalogSelected" class="md-select__catalog" name="catalog" id="catalog">
-              <md-option value="1">Кухни</md-option>
-              <md-option value="2">Диваны</md-option>
-              <md-option value="3">Шкафы</md-option>
-              <md-option value="29">Матрасы</md-option>
-              <md-option value="48">Кровати</md-option>
-              <md-option value="40">Кресла</md-option>
-              <md-option value="41">Столы</md-option>
-              <md-option value="42">Стулья</md-option>
-              <md-option value="43">Комоды и тумбы</md-option>
-              <md-option value="49">Садовая мебель</md-option>
-            </md-select>
-          </md-field>
-        </md-app-toolbar>
 
-        <md-app-drawer  md-permanent="full"   style="height:calc(100vh - 72px); overflow:auto;">
-          <md-toolbar class="md-transparent" md-elevation="0">
-            <span class="md-title">Параметры ранжирования</span>
-            <md-button  class="md-icon-button md-icon-button-right md-raised md-accent"
-                        :disabled="!catalogSelected"
-                        @click="refresh()">
-              <md-icon>refresh</md-icon>
-            </md-button>
-          </md-toolbar>
-
-          <md-list>
-            <md-list-item v-for="(factorGroup,index) in rankingFactorsAsync"
-                          :key="index"
-                          md-expand
-                           >
-              <md-icon>{{ factorGroup.icon }}</md-icon>
-              <span class="md-list-item-text">{{ factorGroup.name }}</span>
-
-              <md-list slot="md-expand">
-                <md-list-item  v-for="(factor,index) in factorGroup.factors"
-                                        :key="index">
-                  <RankingFactorComponent :factor="factor"></RankingFactorComponent>
-                </md-list-item>
-              </md-list>
-            </md-list-item>
-          </md-list>
-        </md-app-drawer>
-
-
-
-        <md-app-content  style="height:calc(100vh - 72px - 64px); overflow:auto;">
-          <Catalog :catalogId="catalogSelected" :rankingFactorsFlattened="rankingFactorsFlattened" />
-        </md-app-content>
-      </md-app>
-    </div>
-  </div>
-</template>
--->
 <script>
 import Catalog from './Catalog.vue';
 import RankingFactorComponent from './RankingFactorComponent.vue';
@@ -157,36 +107,16 @@ export default {
       showSpinner: false,
       showDialogSpinner: false,
       factorsChanged: false,
+      rankingFactorsAsync: [],
+      rankingFactorsFlattened: []
       //refreshButtonDisabled: true
     }
   },
+  mounted() {
+    this.rankingFactorsAsync = this.$store.getters.RANKING_FACTORS;
+    this.rankingFactorsFlattened = this.getRankingFactorsFlatenned();
+  },
   computed: {
-    rankingFactorsAsync() {
-      return this.$store.getters.RANKING_FACTORS;
-    },
-    rankingFactorsFlattened() {
-      let result = {};
-      let rankingFactors = this.$store.getters.RANKING_FACTORS;
-
-      rankingFactors.forEach((factorGroup) => {
-        factorGroup.factors.forEach((factor) => {
-          let params = [];
-          factor.params.forEach(param => params.push(param));
-          if(factor.active) {
-            result[factor.id] = {
-              id: factor.id,
-              name: factor.name,
-              shortName: factor.shortName,
-              weight: factor.weight,
-              getValue: factor.getValue,
-              params: params,
-              active: factor.active
-            };
-          }
-        });
-      });
-      return result;
-    },
     getTitle() {
       return 'Каталоги';
     },
@@ -202,6 +132,29 @@ export default {
     },
   },
   methods: {
+    getRankingFactorsFlatenned() {
+      let result = [];
+      let rankingFactors = this.$store.getters.RANKING_FACTORS;
+
+      rankingFactors.forEach((factorGroup) => {
+        factorGroup.factors.forEach((factor) => {
+          let params = [];
+          factor.params.forEach(param => params.push(param));
+          if(factor.active) {
+            result.push({
+              id: factor.id,
+              name: factor.name,
+              shortName: factor.shortName,
+              weight: factor.weight,
+              getValue: factor.getValue,
+              params: params,
+              active: factor.active
+            });
+          }
+        });
+      });
+      return result;
+    },
     refresh: function() {
       this.$store.commit('SET_RANKING_FACTORS', this.rankingFactorsAsync);
       this.rankingFactorsFlattened = this.getRankingFactorsFlatenned();
@@ -239,5 +192,9 @@ export default {
   }
   .md-list-item-button {
     padding-left: 10px!important;
+  }
+  .v-card {
+    color: rgba(0,0,0)!important;
+    text-decoration: none!important;
   }
 </style>

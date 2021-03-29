@@ -5,6 +5,7 @@ import 'vue-material/dist/vue-material.min.css'
 import 'vue-material/dist/theme/default.css';
 import 'vue-material-slider/dist/vue-material-slider.css';
 import VueMaterialSlider from 'vue-material-slider';
+import AsyncComputed from 'vue-async-computed';
 
 //import vuetify from './plugins/vuetify';
 //Vue.use(vuetify);
@@ -22,6 +23,7 @@ Vue.config.productionTip = false
 Vue.use(VueMaterial)
 Vue.use(VueMaterialSlider);
 Vue.use(VueRouter);
+Vue.use(AsyncComputed);
 
 const router = new VueRouter({
   base: __dirname,
