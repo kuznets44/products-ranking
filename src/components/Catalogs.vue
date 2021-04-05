@@ -118,7 +118,12 @@ export default {
   },
   computed: {
     getTitle() {
-      return 'Каталоги';
+      if( this.catalogSelected !== undefined) {
+        let catalog = this.$store.getters.CATALOGS.find( item => item.id === this.catalogSelected);
+        return `Каталоги / ${catalog.name}`;
+      } else {
+        return 'Каталоги';
+      }
     },
     catalogs() {
       return this.$store.getters.CATALOGS;

@@ -6,7 +6,7 @@
       :items-per-page="36"
       class="elevation-1"
       dense
-      sort-by="rank"
+      sort-by="rankWeighted"
       sort-desc
     >
 
@@ -73,6 +73,10 @@ export default {
       {
         text: 'Ранг',
         value: 'rank'
+      },
+      {
+        text: 'Итоговый ранг',
+        value: 'rankWeighted'
       }
     ];
 
@@ -120,25 +124,28 @@ export default {
             'manufacturerName': product.manufacturer ? product.manufacturer.name : '',
           };
           
-          this.rankingFactorsFlattened.forEach( (factor) => {
-            let total = 0;
-            if(factor.active) {
-              let factorValue = factor.getValue(product);
-              total = factorValue * factor.weight;
-              rank += total;
-            }
-            productProcessed['factor_' + factor.id] = total;
-          });
+          if( product.price > 1000 ) {
+            this.rankingFactorsFlattened.forEach( (factor) => {
+              let total = 0;
+              if(factor.active) {
+                let factorValue = factor.getValue(product);
+                total = factorValue * factor.weight;
+                rank += total;
+              }
+              productProcessed['factor_' + factor.id] = total;
+            });
+          }
           productProcessed.rank = rank;
+          productProcessed.rankWeighted = rank / product.price;
           
           result.push(productProcessed);
         });
 
         result.sort((a, b) => {
-          if(a.rank == b.rank) {
+          if(a.rankWeighted == b.rankWeighted) {
             return a.price == b.price ? 0 : (a.price > b.price ? 1 : -1);
           } else {
-            return a.rank < b.rank ? 1 : -1;
+            return a.rankWeighted < b.rankWeighted ? 1 : -1;
           }
           
         });
