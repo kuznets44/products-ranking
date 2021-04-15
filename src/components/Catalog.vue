@@ -1,5 +1,20 @@
 <template>
   <v-container>
+
+    <v-tabs
+      v-model="tab"
+    >
+      <v-tabs-slider color="primary"></v-tabs-slider>
+
+      <v-tab
+        v-for="section in catalog.sections"
+        :key="section.id"
+        :to="section.code !== 'new-products' ? `/catalogs/${catalog.code}/${section.code}/` : `/catalogs/${catalog.code}/`"
+      >
+        {{ section.code !== 'new-products' ? section.name : `Все ${catalog.name.toLowerCase()}` }}
+      </v-tab>
+    </v-tabs>
+
     <v-data-table v-if="catalogDataProcessed.length !== 0 && !productsProcessing"
       :headers="headers"
       :items="catalogDataProcessed"
@@ -28,6 +43,7 @@
   const loadCatalog = async function() {
     this.catalogData = [];
 
+    this.catalog = this.$store.getters.CATALOGS.find( item => item.id === this.catalogId );
     if(this.$store.getters.CATALOGS_DATA[this.catalogId] == undefined) {
       this.$store.dispatch('GET_CATALOG_DATA',{catalogId: this.catalogId})
         .then(() => {
@@ -42,7 +58,7 @@
 
 export default {
   name: 'Catalog',
-  props: ['catalogId','rankingFactorsFlattened'],
+  props: ['catalogId','sectionId','rankingFactorsFlattened'],
   data: function() {
 
     const headers = [
@@ -55,6 +71,11 @@ export default {
         text: 'Название',
         value: 'name',
         width: 300
+      },
+      {
+        text: 'Раздел',
+        value: 'sectionName',
+        width: 150
       },
       {
         text: 'Производитель',
@@ -92,8 +113,10 @@ export default {
 
     return {
       catalogData: [],
+      catalog:[],
       productsProcessing: false,
       catalogDataProcessed: [],
+      tab: null,
       headers: headers
     }
   },
@@ -108,10 +131,17 @@ export default {
       let result = [];
       if(this.catalogId) {
         console.log('start proc');
+
+        let initialData = this.catalogData;
+        if(this.sectionId !== undefined) {
+          console.log('section',this.sectionId);
+          initialData = initialData.filter( item => item.sectionId === this.sectionId);
+        }
         
-        this.catalogData.forEach((product) => {
+        initialData.forEach((product) => {
           product.manufacturer = this.$store.getters.MANUFACTURERS.find(element => element.id == product.manufacturerId ? element : undefined);
           product.seller = this.$store.getters.SELLERS.find(element => element.id == product.sellerId ? element : undefined);
+          product.section = this.catalog.sections.find( item => item.id === product.sectionId);
           let rank = 0;
 
           const productProcessed = {
@@ -122,6 +152,7 @@ export default {
             'price': parseInt(product.price),
             'sellerName': product.seller ? product.seller.name : '',
             'manufacturerName': product.manufacturer ? product.manufacturer.name : '',
+            'sectionName': product.section ? product.section.name : ''
           };
           
           if( product.price > 1000 ) {
@@ -169,6 +200,17 @@ export default {
       handler: function() {
         if(this.catalogId !== undefined) {
             console.log('catalogId changed',this.catalogId);
+            this.productsProcessing = true;
+            this.catalogDataProcessed = this.processProductsData();
+            this.productsProcessing = false;
+        }
+      }
+    },
+    sectionId: {
+      immediate: true,
+      handler: function() {
+        if(this.catalogId !== undefined) {
+            console.log('sectionId changed',this.catalogId);
             this.productsProcessing = true;
             this.catalogDataProcessed = this.processProductsData();
             this.productsProcessing = false;

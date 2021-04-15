@@ -66,121 +66,113 @@
 
 
 <script>
-import Catalogs from './components/Catalogs';
-import Manufacturers from './components/Manufacturers';
-import Sellers from './components/Sellers';
-import axios from 'axios';
+  import axios from 'axios';
 
-export default {
-  components: [
-    Catalogs,
-    Manufacturers,
-    Sellers
-  ],
-  data() {
-    return {
-      dataLoaded: false,
-      rankingFactors: [],
-      rankingFactorsFlattened: [],
-      manufacturers: [],
-      sellers: [],
-      showDialog: false,
-      dialogMessage: '',
-      showDialogSpinner: false
-    }
-  },
-  methods: {
-    getRankingFactorsFlatenned() {
-      let result = {};
-      this.rankingFactors.forEach((factorGroup) => {
-        factorGroup.factors.forEach((factor) => {
-          let params = [];
-          factor.params.forEach(param => params.push(param));
-          if(factor.active) {
-            result[factor.id] = {
-              id: factor.id,
-              name: factor.name,
-              shortName: factor.shortName,
-              weight: factor.weight,
-              getValue: factor.getValue,
-              params: params,
-              active: factor.active
-            };
-          }
-        });
-      });
-      return result;
+  export default {
+    data() {
+      return {
+        dataLoaded: false,
+        rankingFactors: [],
+        rankingFactorsFlattened: [],
+        manufacturers: [],
+        sellers: [],
+        showDialog: false,
+        dialogMessage: '',
+        showDialogSpinner: false
+      }
     },
-    save: async function() {
-      this.showDialog = true;
-      
-      this.dialogMessage = `Обновляем параметры показателей ранжирования`;
-      await axios.post(
-        'https://mebel.ru/tools/api/product-ranking/factors/',
-        'data=' + JSON.stringify(this.$store.getters.RANKING_FACTORS),{
-          withCredentials: false,
-          headers: { 
-            'Content-Type': 'application/x-www-form-urlencoded' 
-          },
-        }
-      );
-      
-      this.dialogMessage = 'Обновляем данные производителей';
+    methods: {
+      getRankingFactorsFlatenned() {
+        let result = {};
+        this.rankingFactors.forEach((factorGroup) => {
+          factorGroup.factors.forEach((factor) => {
+            let params = [];
+            factor.params.forEach(param => params.push(param));
+            if(factor.active) {
+              result[factor.id] = {
+                id: factor.id,
+                name: factor.name,
+                shortName: factor.shortName,
+                weight: factor.weight,
+                getValue: factor.getValue,
+                params: params,
+                active: factor.active
+              };
+            }
+          });
+        });
+        return result;
+      },
+      save: async function() {
+        this.showDialog = true;
         
-      await axios.post(
-        'https://mebel.ru/tools/api/product-ranking/manufacturers/',
-        'data=' + JSON.stringify(this.$store.getters.MANUFACTURERS), {
-          withCredentials: false,
-          headers: { 
-            'Content-Type': 'application/x-www-form-urlencoded'
-          },
-        }
-      );
-      
-      this.dialogMessage = 'Обновляем данные продавцов';
-      
-      await axios.post(
-        'https://mebel.ru/tools/api/product-ranking/sellers/',
-        'data=' + JSON.stringify(this.$store.getters.SELLERS),  {
-          withCredentials: false,
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-          },
-        }
-      );
-      
-      //обновляем каталог
-      this.showDialogSpinner = true;
-
-      let catalogs = this.$store.getters.CATALOGS;
-      console.log(catalogs);
-      for (let i in catalogs) {
-        let catalog = catalogs[i];
-        this.dialogMessage = `Обновляем ранги товаров каталога "${catalog.name}"`;
-
+        this.dialogMessage = `Обновляем параметры показателей ранжирования`;
         await axios.post(
-          'https://mebel.ru/tools/api/product-ranking/products/',
-          `action=update&iblock_id=${catalog.id}`,{
+          'https://mebel.ru/tools/api/product-ranking/factors/',
+          'data=' + JSON.stringify(this.$store.getters.RANKING_FACTORS),{
+            withCredentials: false,
+            headers: { 
+              'Content-Type': 'application/x-www-form-urlencoded' 
+            },
+          }
+        );
+        
+        this.dialogMessage = 'Обновляем данные производителей';
+          
+        await axios.post(
+          'https://mebel.ru/tools/api/product-ranking/manufacturers/',
+          'data=' + JSON.stringify(this.$store.getters.MANUFACTURERS), {
+            withCredentials: false,
+            headers: { 
+              'Content-Type': 'application/x-www-form-urlencoded'
+            },
+          }
+        );
+        
+        this.dialogMessage = 'Обновляем данные продавцов';
+        
+        await axios.post(
+          'https://mebel.ru/tools/api/product-ranking/sellers/',
+          'data=' + JSON.stringify(this.$store.getters.SELLERS),  {
             withCredentials: false,
             headers: {
               'Content-Type': 'application/x-www-form-urlencoded'
             },
           }
         );
+        
+        //обновляем каталог
+        this.showDialogSpinner = true;
+
+        let catalogs = this.$store.getters.CATALOGS;
+        console.log(catalogs);
+        for (let i in catalogs) {
+          let catalog = catalogs[i];
+          this.dialogMessage = `Обновляем ранги товаров каталога "${catalog.name}"`;
+
+          await axios.post(
+            'https://mebel.ru/tools/api/product-ranking/products/',
+            `action=update&iblock_id=${catalog.id}`,{
+              withCredentials: false,
+              headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+              },
+            }
+          );
+        }
+              
+        this.dialogMessage = 'Ранги товаров обновлены!';
+        this.showDialogSpinner = false;
+      },
+      close: function(){
+        window.location = 'https://mebel.ru/bitrix/admin/';
       }
-            
-      this.dialogMessage = 'Ранги товаров обновлены!';
-      this.showDialogSpinner = false;
     },
-    close: function(){
-      window.location = 'https://mebel.ru/bitrix/admin/';
-    }
-  },
-  beforeCreate() {
-      this.$store.dispatch('GET_RANKING_SYSTEM_DATA')
-        .then( () => this.dataLoaded = true);
-  },
-}
+    beforeCreate() {
+        this.$store.dispatch('GET_RANKING_SYSTEM_DATA')
+          .then( () => this.dataLoaded = true);
+    },
+  }
 </script>
 
 <style>

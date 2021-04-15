@@ -6,17 +6,14 @@ import 'vue-material/dist/theme/default.css';
 import 'vue-material-slider/dist/vue-material-slider.css';
 import VueMaterialSlider from 'vue-material-slider';
 import AsyncComputed from 'vue-async-computed';
-
-//import vuetify from './plugins/vuetify';
-//Vue.use(vuetify);
+import vuetify from './plugins/vuetify';
 
 import { store } from './store';
 
 import App from './App.vue';
-import Catalogs from './components/Catalogs';
-import Manufacturers from './components/Manufacturers';
-import Sellers from './components/Sellers';
-import vuetify from './plugins/vuetify';
+import ViewCatalogs from './views/ViewCatalogs';
+import ViewManufacturers from './views/ViewManufacturers';
+import ViewSellers from './views/ViewSellers';
 
 
 Vue.config.productionTip = false
@@ -28,11 +25,12 @@ Vue.use(AsyncComputed);
 const router = new VueRouter({
   base: __dirname,
   routes: [
-    { path: '/catalogs/', component: Catalogs },
-    { path: '/catalogs/:code/', component: Catalogs },
-    { path: '/manufacturers/', component: Manufacturers },
+    { path: '/catalogs/', component: ViewCatalogs },
+    { path: '/catalogs/:code/:section/', component: ViewCatalogs },
+    { path: '/catalogs/:code/', component: ViewCatalogs },
+    { path: '/manufacturers/', component: ViewManufacturers },
     { path: '/sellers/', 
-      component: Sellers,
+      component: ViewSellers,
       props: store.getters.sellers
     },
     { path: '/', redirect: '/catalogs/' }

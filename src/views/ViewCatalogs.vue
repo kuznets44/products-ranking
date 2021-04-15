@@ -79,18 +79,18 @@
       </v-row>
     </v-container>
 
-    <Catalog v-if="catalogSelected !== undefined" :catalogId="catalogSelected" :rankingFactorsFlattened="rankingFactorsFlattened" />
+    <Catalog v-if="catalogSelected !== undefined" :catalogId="catalogSelected" :sectionId="sectionSelected" :rankingFactorsFlattened="rankingFactorsFlattened" />
 
   </v-app>
 </template>
 
 
 <script>
-import Catalog from './Catalog.vue';
-import RankingFactorComponent from './RankingFactorComponent.vue';
+import Catalog from '../components/Catalog.vue';
+import RankingFactorComponent from '../components/RankingFactorComponent.vue';
 
 export default {
-  name: 'Catalogs',
+  name: 'ViewCatalogs',
   components: {
     Catalog,
     RankingFactorComponent,
@@ -131,6 +131,19 @@ export default {
     catalogSelected() {
       if(this.$route.params.code !== undefined) {
         return this.catalogs.find( item => item.code == this.$route.params.code ).id;
+      } else {
+        return undefined;
+      }
+    },
+    sectionSelected() {
+      if(this.$route.params.code !== undefined && this.$route.params.section !== undefined) {
+        let catalog = this.catalogs.find( item => item.code == this.$route.params.code );
+        if(catalog !== undefined) {
+          let section = catalog.sections.find( item => item.code === this.$route.params.section );
+          if(section !== undefined) {
+            return section.id;
+          }
+        }
       } else {
         return undefined;
       }
