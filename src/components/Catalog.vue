@@ -96,9 +96,17 @@ export default {
         value: 'rank'
       },
       {
-        text: 'Итоговый ранг',
+        text: 'Ранг lg',  //десятичный
         value: 'rankWeighted'
-      }
+      },
+      {
+        text: 'Ранг ln',  //натуральный
+        value: 'rankLn'
+      },
+      {
+        text: 'Ранг log2',  //по осн.2
+        value: 'rankLog2'
+      },
     ];
 
 
@@ -167,7 +175,9 @@ export default {
             });
           }
           productProcessed.rank = rank;
-          productProcessed.rankWeighted = rank / product.price;
+          productProcessed.rankWeighted = Math.log10(rank) / Math.log10(product.price);
+          productProcessed.rankLn = Math.log(rank) / Math.log(product.price);
+          productProcessed.rankLog2 = Math.log2(rank) / Math.log2(product.price);
           
           result.push(productProcessed);
         });
