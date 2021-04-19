@@ -106,10 +106,21 @@
       save: async function() {
         this.showDialog = true;
         
+        this.dialogMessage = `Обновляем формулу расчета`;
+        await axios.post(
+          'https://mebel.ru/tools/api/product-ranking/formula/',
+          'data=' + encodeURIComponent(JSON.stringify(this.$store.getters.FORMULA)),{
+            withCredentials: false,
+            headers: { 
+              'Content-Type': 'application/x-www-form-urlencoded' 
+            },
+          }
+        );
+
         this.dialogMessage = `Обновляем параметры показателей ранжирования`;
         await axios.post(
           'https://mebel.ru/tools/api/product-ranking/factors/',
-          'data=' + JSON.stringify(this.$store.getters.RANKING_FACTORS),{
+          'data=' + encodeURIComponent(JSON.stringify(this.$store.getters.RANKING_FACTORS)),{
             withCredentials: false,
             headers: { 
               'Content-Type': 'application/x-www-form-urlencoded' 
@@ -121,7 +132,7 @@
           
         await axios.post(
           'https://mebel.ru/tools/api/product-ranking/manufacturers/',
-          'data=' + JSON.stringify(this.$store.getters.MANUFACTURERS), {
+          'data=' + encodeURIComponent(JSON.stringify(this.$store.getters.MANUFACTURERS)), {
             withCredentials: false,
             headers: { 
               'Content-Type': 'application/x-www-form-urlencoded'
@@ -133,7 +144,7 @@
         
         await axios.post(
           'https://mebel.ru/tools/api/product-ranking/sellers/',
-          'data=' + JSON.stringify(this.$store.getters.SELLERS),  {
+          'data=' + encodeURIComponent(JSON.stringify(this.$store.getters.SELLERS)),  {
             withCredentials: false,
             headers: {
               'Content-Type': 'application/x-www-form-urlencoded'
@@ -163,6 +174,7 @@
               
         this.dialogMessage = 'Ранги товаров обновлены!';
         this.showDialogSpinner = false;
+        setTimeout(() => this.showDialog = false, 1000);
       },
       close: function(){
         window.location = 'https://mebel.ru/bitrix/admin/';

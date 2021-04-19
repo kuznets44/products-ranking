@@ -21,7 +21,7 @@
       :items-per-page="36"
       class="elevation-1"
       dense
-      sort-by="rankWeighted"
+      sort-by="rankTotal"
       sort-desc
     >
 
@@ -96,6 +96,11 @@ export default {
         value: 'rank'
       },
       {
+        text: 'Итоговый ранг',
+        value: 'rankTotal'
+      },
+      /*
+      {
         text: 'Ранг lg',  //десятичный
         value: 'rankWeighted'
       },
@@ -107,6 +112,7 @@ export default {
         text: 'Ранг log2',  //по осн.2
         value: 'rankLog2'
       },
+      */
     ];
 
 
@@ -139,6 +145,8 @@ export default {
       let result = [];
       if(this.catalogId) {
         console.log('start proc');
+
+        let rankingFunction = eval(`(price,rank) => { ${this.$store.getters.FORMULA} }`);
 
         let initialData = this.catalogData;
         if(this.sectionId !== undefined) {
@@ -175,18 +183,21 @@ export default {
             });
           }
           productProcessed.rank = rank;
+          productProcessed.rankTotal = rankingFunction(product.price,rank);
+          /*
           productProcessed.rankWeighted = Math.log10(rank) / Math.log10(product.price);
           productProcessed.rankLn = Math.log(rank) / Math.log(product.price);
           productProcessed.rankLog2 = Math.log2(rank) / Math.log2(product.price);
+          */
           
           result.push(productProcessed);
         });
 
         result.sort((a, b) => {
-          if(a.rankWeighted == b.rankWeighted) {
+          if(a.rankTotal == b.rankTotal) {
             return a.price == b.price ? 0 : (a.price > b.price ? 1 : -1);
           } else {
-            return a.rankWeighted < b.rankWeighted ? 1 : -1;
+            return a.rankTotal < b.rankTotal ? 1 : -1;
           }
           
         });

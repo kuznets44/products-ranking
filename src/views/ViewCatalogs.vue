@@ -28,29 +28,50 @@
       </v-list-item>
     </v-list>
 
-      <v-divider></v-divider>
+    <v-divider></v-divider>
 
-      <v-list nav dense>
-        <v-list-group
-          v-for="(factorGroup,index) in rankingFactorsAsync"
+    <v-list nav dense>
+      <v-list-group
+        v-for="(factorGroup,index) in rankingFactorsAsync"
+        :key="index"
+        prepend-icon="mdi-cog"
+        no-action
+      >
+        <template v-slot:activator>
+          <v-list-item-content>
+            <v-list-item-title v-text="factorGroup.name"></v-list-item-title>
+          </v-list-item-content>
+        </template>
+
+        <v-list-item
+          v-for="(factor,index) in factorGroup.factors"
           :key="index"
-          prepend-icon="mdi-cog"
-          no-action
         >
-          <template v-slot:activator>
-            <v-list-item-content>
-              <v-list-item-title v-text="factorGroup.name"></v-list-item-title>
-            </v-list-item-content>
-          </template>
-
-          <v-list-item
-            v-for="(factor,index) in factorGroup.factors"
-            :key="index"
-          >
-              <RankingFactorComponent :factor="factor"></RankingFactorComponent>
-          </v-list-item>
+            <RankingFactorComponent :factor="factor"></RankingFactorComponent>
+        </v-list-item>
+        
       </v-list-group>
+
+      <v-list-group
+        :key="99"
+        prepend-icon="mdi-cog"
+        no-action
+      >
+        <template v-slot:activator>
+          <v-list-item-content>
+            <v-list-item-title>Формула расчета</v-list-item-title>
+          </v-list-item-content>
+        </template>
+
+        <v-list-item class="ml-0"
+          :key="999"
+        >
+          <prism-editor class="my-editor height-200" v-model="formula" :highlight="highlighter" line-numbers></prism-editor>
+        </v-list-item>
+      </v-list-group>
+
     </v-list>
+
 
 
     </v-navigation-drawer>
@@ -88,12 +109,22 @@
 <script>
 import Catalog from '../components/Catalog.vue';
 import RankingFactorComponent from '../components/RankingFactorComponent.vue';
+import { PrismEditor } from 'vue-prism-editor';
+import 'vue-prism-editor/dist/prismeditor.min.css';
+
+// import highlighting library (you can use any library you want just return html string)
+import { highlight, languages } from 'prismjs/components/prism-core';
+import 'prismjs/components/prism-clike';
+import 'prismjs/components/prism-javascript';
+import 'prismjs/themes/prism-tomorrow.css'; // import syntax highlighting styles
+ 
 
 export default {
   name: 'ViewCatalogs',
   components: {
     Catalog,
     RankingFactorComponent,
+    PrismEditor
   },
   data() {
     return {
@@ -108,12 +139,14 @@ export default {
       showDialogSpinner: false,
       factorsChanged: false,
       rankingFactorsAsync: [],
-      rankingFactorsFlattened: []
+      rankingFactorsFlattened: [],
+      formula: ''
       //refreshButtonDisabled: true
     }
   },
   mounted() {
     this.rankingFactorsAsync = this.$store.getters.RANKING_FACTORS;
+    this.formula = this.$store.getters.FORMULA;
     this.rankingFactorsFlattened = this.getRankingFactorsFlatenned();
   },
   computed: {
@@ -150,6 +183,9 @@ export default {
     },
   },
   methods: {
+    highlighter(code) {
+      return highlight(code, languages.js); //returns html
+    },
     getRankingFactorsFlatenned() {
       let result = [];
       let rankingFactors = this.$store.getters.RANKING_FACTORS;
@@ -175,6 +211,7 @@ export default {
     },
     refresh: function() {
       this.$store.commit('SET_RANKING_FACTORS', this.rankingFactorsAsync);
+      this.$store.commit('SET_FORMULA', this.formula);
       this.rankingFactorsFlattened = this.getRankingFactorsFlatenned();
     },
     close: function(){
@@ -186,9 +223,19 @@ export default {
 
 <style scoped>
 
+  .height-200 {
+    height: 200px;
+    border:1px solid rgba(0, 0, 0, 0.12);
+  }
+
   .md-icon-button-right {
     position:absolute;
     right: 10px;
+  }
+
+  .ml-0 {
+    margin-left: 0!important;
+    padding-left: 0!important;
   }
   
   .md-card {
@@ -212,7 +259,25 @@ export default {
     padding-left: 10px!important;
   }
   .v-card {
-    color: rgba(0,0,0)!important;
+    color: #000000!important;
     text-decoration: none!important;
+  }
+
+  /* required class */
+  .my-editor {
+    /* we dont use `language-` classes anymore so thats why we need to add background and text color manually */
+    background: #2d2d2d;
+    color: #ccc;
+ 
+    /* you must provide font-family font-size line-height. Example: */
+    font-family: Fira code, Fira Mono, Consolas, Menlo, Courier, monospace;
+    font-size: 14px;
+    line-height: 1.5;
+    padding: 5px;
+  }
+ 
+  /* optional class for removing the outline */
+  .prism-editor__textarea:focus {
+    outline: none;
   }
 </style>

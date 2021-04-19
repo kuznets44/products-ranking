@@ -11,7 +11,8 @@ export const store = new Vuex.Store({
     catalogData: [],
     sellers: [],
     manufacturers: [],
-    rankingFactors: []
+    rankingFactors: [],
+    formula: ''
   },
   mutations: {
     SET_SELLERS: (state, payload) => {
@@ -40,6 +41,9 @@ export const store = new Vuex.Store({
     SET_RANKING_FACTORS: (state, payload) => {
       state.rankingFactors = payload;
     },
+    SET_FORMULA: (state, payload) => {
+      state.formula = payload;
+    },
     SET_RANKING_FACTOR: (state, payload) => {
       state.rankingFactors.forEach((factorGroup) => {
         factorGroup.factors.forEach(factor => {
@@ -66,6 +70,9 @@ export const store = new Vuex.Store({
     },
     RANKING_FACTORS: (state) => {
       return state.rankingFactors;
+    },
+    FORMULA: (state) => {
+      return state.formula;
     }
   },
   actions: {
@@ -114,16 +121,18 @@ export const store = new Vuex.Store({
     },
     GET_RANKING_SYSTEM_DATA: async ( context ) => {
 
-      let [sellers, manufacturers, catalogs, rankingFactors] = await Promise.all([
+      let [sellers, manufacturers, catalogs, rankingFactors, formula] = await Promise.all([
         axios.get('https://mebel.ru/tools/api/product-ranking/sellers/'),
         axios.get('https://mebel.ru/tools/api/product-ranking/manufacturers/'),
         axios.get('https://mebel.ru/tools/api/product-ranking/catalogs/'),
         axios.get('https://mebel.ru/tools/api/product-ranking/factors/'),
+        axios.get('https://mebel.ru/tools/api/product-ranking/formula/'),
       ]);
 
       context.commit('SET_SELLERS', sellers.data);
       context.commit('SET_MANUFACTURERS', manufacturers.data);
       context.commit('SET_CATALOGS', catalogs.data);
+      context.commit('SET_FORMULA', formula.data);
 
       let rankingsFactorsAsync = [];
       rankingFactors.data.forEach((item) => {
